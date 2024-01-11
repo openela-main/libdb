@@ -1,0 +1,207 @@
+diff -up db-5.3.28/dist/aclocal/options.m4.openssl db-5.3.28/dist/aclocal/options.m4
+--- db-5.3.28/dist/aclocal/options.m4.openssl	2013-09-09 17:35:02.000000000 +0200
++++ db-5.3.28/dist/aclocal/options.m4	2018-10-22 11:02:08.037182417 +0200
+@@ -406,7 +406,7 @@ AC_ARG_WITH([cryptography],
+ 	AC_HELP_STRING([--with-cryptography=yes|no|ipp], [Build database cryptography support @<:@default=yes@:>@.]),
+ 	[], [with_cryptography=$enable_cryptography])
+ case "$with_cryptography" in
+-yes|no|ipp) ;;
++yes|no|ipp|openssl) ;;
+ *) AC_MSG_ERROR([unknown --with-cryptography argument \'$with_cryptography\']) ;;
+ esac
+ db_cv_build_cryptography="$with_cryptography"
+diff -up db-5.3.28/dist/configure.ac.openssl db-5.3.28/dist/configure.ac
+--- db-5.3.28/dist/configure.ac.openssl	2018-10-22 11:02:08.019182151 +0200
++++ db-5.3.28/dist/configure.ac	2018-10-22 14:40:52.467991248 +0200
+@@ -994,6 +994,18 @@ in the configured include path.]))
+ 		AC_DEFINE(HAVE_CRYPTO_IPP)
+ 		AH_TEMPLATE(HAVE_CRYPTO_IPP,
+ 		    [Define to 1 if using Intel IPP for cryptography.])
++    else
++        if test "$db_cv_build_cryptography" = "openssl"; then
++            AC_CHECK_HEADERS(openssl/conf.h openssl/evp.h, [], AC_MSG_ERROR([\
++Openssl header files required for OPENSSL cryptography support were not found \
++in the configured include path.]))
++            AC_DEFINE(HAVE_CRYPTO_OPENSSL)
++            AC_CHECK_LIB(crypto, EVP_CIPHER_CTX_new,
++                [LDFLAGS="-lcrypto $LDFLAGS"], AC_MSG_ERROR([\
++Libcrypto was not found in the configured library path.]))
++            AH_TEMPLATE(HAVE_CRYPTO_OPENSSL,
++                [Define to 1 if using OpenSSL for cryptography.])
++        fi
+ 	fi
+ else
+ 	CRYPTO_OBJS="crypto_stub${o}"
+diff -up db-5.3.28/dist/Makefile.in.openssl db-5.3.28/dist/Makefile.in
+--- db-5.3.28/dist/Makefile.in.openssl	2018-10-22 11:02:07.997181825 +0200
++++ db-5.3.28/dist/Makefile.in	2018-10-22 11:30:39.442854972 +0200
+@@ -305,9 +305,10 @@ CXX_OBJS=\
+ 	cxx_except@o@ cxx_lock@o@ cxx_logc@o@ cxx_mpool@o@ cxx_multi@o@ \
+ 	cxx_rid@o@ cxx_seq@o@ cxx_site@o@ cxx_txn@o@
+ 
++CRYPTO_OBJS_RIJNDAEL=\
++	rijndael-alg-fst@o@ rijndael-api-fst@o@
+ CRYPTO_OBJS=\
+-	aes_method@o@ crypto@o@ mt19937db@o@ rijndael-alg-fst@o@ \
+-	rijndael-api-fst@o@
++	aes_method@o@ crypto@o@ mt19937db@o@
+ 
+ JAVA_OBJS=\
+ 	db_java_wrap@o@
+diff -up db-5.3.28/src/crypto/aes_method.c.openssl db-5.3.28/src/crypto/aes_method.c
+--- db-5.3.28/src/crypto/aes_method.c.openssl	2013-09-09 17:35:07.000000000 +0200
++++ db-5.3.28/src/crypto/aes_method.c	2018-10-22 17:54:53.439276678 +0200
+@@ -17,6 +17,10 @@
+ 
+ #ifdef HAVE_CRYPTO_IPP
+ #include <ippcp.h>
++#elif defined(HAVE_CRYPTO_OPENSSL)
++#define OPENSSL_AES_ERROR -101
++#include <openssl/conf.h>
++#include <openssl/evp.h>
+ #endif
+ 
+ static void __aes_err __P((ENV *, int));
+@@ -119,11 +123,13 @@ __aes_decrypt(env, aes_data, iv, cipher,
+ 	AES_CIPHER *aes;
+ #ifdef	HAVE_CRYPTO_IPP
+ 	IppStatus ipp_ret;
++#elif defined(HAVE_CRYPTO_OPENSSL)
++   EVP_CIPHER_CTX *ctx;
++   int temp_len;
+ #else
+ 	cipherInstance c;
+-#endif
+ 	int ret;
+-
++#endif
+ 	aes = (AES_CIPHER *)aes_data;
+ 	if (iv == NULL || cipher == NULL)
+ 		return (EINVAL);
+@@ -137,6 +143,32 @@ __aes_decrypt(env, aes_data, iv, cipher,
+ 		__aes_err(env, (int)ipp_ret);
+ 		return (EAGAIN);
+ 	}
++#elif defined(HAVE_CRYPTO_OPENSSL)
++    if(!(ctx = EVP_CIPHER_CTX_new())) {
++		__aes_err(env, OPENSSL_AES_ERROR);
++        return (EAGAIN);
++    }
++    if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, aes->key,
++        (unsigned char*)iv)) {
++		__aes_err(env, OPENSSL_AES_ERROR);
++        return (EAGAIN);
++    }
++
++    EVP_CIPHER_CTX_set_padding(ctx, 0);
++
++    if(1 != EVP_DecryptUpdate(ctx, (unsigned char*)cipher, &temp_len,
++        (unsigned char*)cipher, cipher_len)) {
++		__aes_err(env, OPENSSL_AES_ERROR);
++        return (EAGAIN);
++    }
++    cipher_len = temp_len;
++    if(1 != EVP_DecryptFinal_ex(ctx, ((unsigned char*)cipher) + temp_len,
++        &temp_len)) {
++		__aes_err(env, OPENSSL_AES_ERROR);
++        return (EAGAIN);
++    }
++    cipher_len += temp_len;
++    EVP_CIPHER_CTX_free(ctx);
+ #else
+ 	/*
+ 	 * Initialize the cipher
+@@ -174,6 +206,9 @@ __aes_encrypt(env, aes_data, iv, data, d
+ 	AES_CIPHER *aes;
+ #ifdef	HAVE_CRYPTO_IPP
+ 	IppStatus ipp_ret;
++#elif defined(HAVE_CRYPTO_OPENSSL)
++   EVP_CIPHER_CTX *ctx;
++   int temp_len;
+ #else
+ 	cipherInstance c;
+ #endif
+@@ -204,6 +239,32 @@ __aes_encrypt(env, aes_data, iv, data, d
+ 		__aes_err(env, (int)ipp_ret);
+ 		return (EAGAIN);
+ 	}
++#elif defined(HAVE_CRYPTO_OPENSSL)
++    if(!(ctx = EVP_CIPHER_CTX_new())) {
++		__aes_err(env, OPENSSL_AES_ERROR);
++        return (EAGAIN);
++    }
++    if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, aes->key,
++        (unsigned char*)tmp_iv)) {
++		__aes_err(env, OPENSSL_AES_ERROR);
++        return (EAGAIN);
++    }
++
++    EVP_CIPHER_CTX_set_padding(ctx, 0);
++
++    if(1 != EVP_EncryptUpdate(ctx, (unsigned char*)data, &temp_len,
++        (unsigned char*)data, data_len)) {
++		__aes_err(env, OPENSSL_AES_ERROR);
++        return (EAGAIN);
++    }
++    data_len = temp_len;
++    if(1 != EVP_EncryptFinal_ex(ctx, ((unsigned char*)data) + temp_len,
++        &temp_len)) {
++		__aes_err(env, OPENSSL_AES_ERROR);
++        return (EAGAIN);
++    }
++    data_len += temp_len;
++    EVP_CIPHER_CTX_free(ctx);
+ #else
+ 	/*
+ 	 * Initialize the cipher
+@@ -254,7 +315,7 @@ __aes_derivekeys(env, db_cipher, passwd,
+ 	SHA1_CTX ctx;
+ #ifdef	HAVE_CRYPTO_IPP
+ 	IppStatus ipp_ret;
+-#else
++#elif !defined(HAVE_CRYPTO_OPENSSL)
+ 	int ret;
+ #endif
+ 	u_int32_t temp[DB_MAC_KEY/4];
+@@ -278,6 +339,8 @@ __aes_derivekeys(env, db_cipher, passwd,
+ 		__aes_err(env, (int)ipp_ret);
+ 		return (EAGAIN);
+ 	}
++#elif defined(HAVE_CRYPTO_OPENSSL)
++    memcpy(aes->key, (unsigned char*) temp, DB_AES_CHUNK);
+ #else
+ 	if ((ret = __db_makeKey(&aes->encrypt_ki, DIR_ENCRYPT,
+ 	    DB_AES_KEYLEN, (char *)temp)) != TRUE) {
+@@ -320,6 +383,10 @@ __aes_err(env, err)
+ 	case ippStsUnderRunErr:
+ 		errstr = DB_STR("0185", "IPP AES srclen size error");
+ 		break;
++#elif defined(HAVE_CRYPTO_OPENSSL)
++	case OPENSSL_AES_ERROR:
++		errstr = DB_STR("0193", "AES unknown error");
++		break;
+ #else
+ 	case BAD_KEY_DIR:
+ 		errstr = DB_STR("0186", "AES key direction is invalid");
+diff -up db-5.3.28/src/dbinc/crypto.h.openssl db-5.3.28/src/dbinc/crypto.h
+--- db-5.3.28/src/dbinc/crypto.h.openssl	2013-09-09 17:35:08.000000000 +0200
++++ db-5.3.28/src/dbinc/crypto.h	2018-10-22 11:02:08.038182432 +0200
+@@ -59,7 +60,9 @@ struct __db_cipher {
+ 
+ #ifdef HAVE_CRYPTO
+ 
++#ifndef HAVE_CRYPTO_OPENSSL
+ #include "crypto/rijndael/rijndael-api-fst.h"
++#endif
+ 
+ /*
+  * Shared ciphering structure
+@@ -77,6 +80,8 @@ typedef struct __cipher {
+ typedef struct __aes_cipher {
+ #ifdef	HAVE_CRYPTO_IPP
+ 	void		*ipp_ctx;	/* IPP key instance */
++#elif defined(HAVE_CRYPTO_OPENSSL)
++    unsigned char key[DB_AES_CHUNK];
+ #else
+ 	keyInstance	decrypt_ki;	/* Decryption key instance */
+ 	keyInstance	encrypt_ki;	/* Encryption key instance */
