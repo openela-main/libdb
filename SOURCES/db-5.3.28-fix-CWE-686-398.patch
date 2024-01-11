@@ -1,0 +1,54 @@
+This patch fixes: CWE-686,CWE-398
+
+diff -ur db-5.3.28/src/log/log_verify_int.c new/src/log/log_verify_int.c
+--- db-5.3.28/src/log/log_verify_int.c	2013-09-09 17:35:08.000000000 +0200
++++ new/src/log/log_verify_int.c	2021-08-05 13:33:06.378608924 +0200
+@@ -433,9 +433,9 @@
+ 		putflag = DB_CURRENT;
+ 		doput = 1;
+ 	}
++    if (doput)
++        ret = __dbc_put(csr, &key, &data, putflag);
+ 
+-	if (doput && (ret = __dbc_put(csr, &key, &data, putflag)) != 0)
+-		goto err;
+ err:
+ 	if (csr != NULL && (tret = __dbc_close(csr)) != 0 && ret == 0)
+ 		ret = tret;
+diff -ur db-5.3.28/src/log/log_verify_util.c new/src/log/log_verify_util.c
+--- db-5.3.28/src/log/log_verify_util.c	2013-09-09 17:35:08.000000000 +0200
++++ new/src/log/log_verify_util.c	2021-08-04 15:10:07.900854238 +0200
+@@ -2140,8 +2140,7 @@
+ 	for (ret = __dbc_pget(csr, &key, &data2, &data, DB_SET); ret == 0;
+ 	    ret = __dbc_pget(csr, &key, &data2, &data, DB_NEXT_DUP))
+ 		BDBOP(__db_put(pdb, lvh->ip, NULL, &data2, &key2, 0));
+-	if ((ret = __del_txn_pages(lvh, ctxn)) != 0 && ret != DB_NOTFOUND)
+-		goto err;
++    ret = __del_txn_pages(lvh, ctxn);
+ err:
+ 	if (csr != NULL && (tret = __dbc_close(csr)) != 0 && ret == 0)
+ 		ret = tret;
+diff -ur db-5.3.28/src/rep/rep_backup.c new/src/rep/rep_backup.c
+--- db-5.3.28/src/rep/rep_backup.c	2013-09-09 17:35:09.000000000 +0200
++++ new/src/rep/rep_backup.c	2021-08-04 14:47:51.967782566 +0200
+@@ -542,8 +542,6 @@
+ 
+ 	ret = __memp_fput(dbp->mpf, ip, pagep, dbc->priority);
+ 	pagep = NULL;
+-	if (ret != 0)
+-		goto err;
+ err:
+ 	/*
+ 	 * Check status of pagep in case any new error paths out leave
+diff -ur db-5.3.28/util/db_dump185.c new/util/db_dump185.c
+--- db-5.3.28/util/db_dump185.c	2013-09-09 17:35:12.000000000 +0200
++++ new/util/db_dump185.c	2021-08-04 14:45:37.592794678 +0200
+@@ -19,7 +19,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-
++#include <unistd.h>
+ #ifdef HAVE_DB_185_H
+ #include <db_185.h>
+ #else
