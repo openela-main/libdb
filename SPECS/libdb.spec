@@ -1,17 +1,19 @@
 %define __soversion_major 5
 %define __soversion %{__soversion_major}.3
 %define __tclversion 8.6
+%define __converter_version 1.0.2
 
 Summary: The Berkeley DB database library for C
 Name: libdb
 Version: 5.3.28
-Release: 53%{?dist}
+Release: 54%{?dist}
 Source0: http://download.oracle.com/berkeley-db/db-%{version}.tar.gz
 Source1: http://download.oracle.com/berkeley-db/db.1.85.tar.gz
 # For mt19937db.c
 Source2: http://www.gnu.org/licenses/lgpl-2.1.txt
 # libdb man pages generated from the 5.3.28 documentation
 Source3: libdb-5.3.28-manpages.tar.gz
+Source4: https://github.com/fila43/db_converter/archive/refs/tags/v%{__converter_version}.tar.gz
 Patch0: libdb-multiarch.patch
 # db-1.85 upstream patches
 Patch10: http://www.oracle.com/technology/products/berkeley-db/db/update/1.85/patch.1.1
@@ -61,7 +63,7 @@ Patch41: db-5.3.28-fix-CWE-686-398.patch
 Patch42: db-5.3.28-mmap-high-cpu-usage.patch
 
 URL: http://www.oracle.com/database/berkeley-db/
-License: BSD and LGPLv2 and Sleepycat
+License: BSD and LGPLv2 and Sleepycat and MIT
 BuildRequires: gcc gcc-c++
 BuildRequires: perl-interpreter libtool
 BuildRequires: tcl-devel >= %{__tclversion}
@@ -82,7 +84,11 @@ be installed on all systems.
 
 %package utils
 Summary: Command line tools for managing Berkeley DB databases
+Buildrequires: libdb-devel
+BuildRequires: gdbm-devel lmdb-devel
+
 Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: gdbm-libs lmdb-libs
 
 %description utils
 The Berkeley Database (Berkeley DB) is a programmatic toolkit that
@@ -196,10 +202,13 @@ provides embedded database support for both traditional and
 client/server applications. This package contains the libraries
 for building programs which use the Berkeley DB in SQL.
 
+
 %prep
 %setup -q -n db-%{version} -a 1
 cp %{SOURCE2} .
 tar -xf %{SOURCE3}
+#db_converter
+tar -xf %{SOURCE4}
 
 %patch0 -p1
 pushd db.1.85/PORT/linux
@@ -280,6 +289,10 @@ perl -pi -e 's/-shared -nostdlib/-shared/' libtool
 echo "source ../../test/tcl/test.tcl; r env; r mut; r memp" | tclsh
 popd
 
+pushd db_converter-%{__converter_version}
+%make_build
+popd
+
 %install
 rm -rf ${RPM_BUILD_ROOT}
 mkdir -p ${RPM_BUILD_ROOT}%{_includedir}
@@ -327,6 +340,8 @@ mv man/* ${RPM_BUILD_ROOT}%{_mandir}/man1
 %ldconfig_scriptlets sql
 %ldconfig_scriptlets tcl
 
+install -m 0755 db_converter-%{__converter_version}/db_converter %{buildroot}/%{_bindir}/db_converter
+
 %files
 %license LICENSE lgpl-2.1.txt
 %doc README
@@ -364,6 +379,7 @@ mv man/* ${RPM_BUILD_ROOT}%{_mandir}/man1
 %{_bindir}/db*_upgrade
 %{_bindir}/db*_verify
 %{_bindir}/db*_tuner
+%{_bindir}/db_converter
 %{_mandir}/man1/db_*
 
 %files cxx
@@ -392,6 +408,11 @@ mv man/* ${RPM_BUILD_ROOT}%{_mandir}/man1
 %{_includedir}/%{name}/dbsql.h
 
 %changelog
+* Mon May 06 2024 Filip Januš <fjanus@redhat.com> - 5.3.28-54
+- Add db_converter into -utils subpackage
+- It allowes to convert BerkeleyDB database format to GDBM/LMDB format
+- Resolves: RHEL-35607
+ 
 * Wed Nov 24 2021 Filip Januš <fjanus@redhat.com> - 5.3.28-53
 - Add missing RPM_LD_FLAGS for db_dump185
 - Resolves: #2026417
