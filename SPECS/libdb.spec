@@ -1,12 +1,12 @@
 %define __soversion_major 5
 %define __soversion %{__soversion_major}.3
 %define __tclversion 8.6
-%define __converter_version 1.0.2
+%define __converter_version 1.0.3
 
 Summary: The Berkeley DB database library for C
 Name: libdb
 Version: 5.3.28
-Release: 54%{?dist}
+Release: 55%{?dist}
 Source0: http://download.oracle.com/berkeley-db/db-%{version}.tar.gz
 Source1: http://download.oracle.com/berkeley-db/db.1.85.tar.gz
 # For mt19937db.c
@@ -408,6 +408,9 @@ install -m 0755 db_converter-%{__converter_version}/db_converter %{buildroot}/%{
 %{_includedir}/%{name}/dbsql.h
 
 %changelog
+* Mon Sep 16 2024 Filip Januš <fjanus@redhat.com> - 5.3.28-55
+- Rebase db_converter tool to the latest version
+
 * Mon May 06 2024 Filip Januš <fjanus@redhat.com> - 5.3.28-54
 - Add db_converter into -utils subpackage
 - It allowes to convert BerkeleyDB database format to GDBM/LMDB format
