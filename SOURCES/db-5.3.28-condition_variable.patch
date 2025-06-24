@@ -1,6 +1,9 @@
-diff -up db-5.3.28/dist/android/android_config.in.pthreads db-5.3.28/dist/android/android_config.in
---- db-5.3.28/dist/android/android_config.in.pthreads	2013-09-09 17:35:02.000000000 +0200
-+++ db-5.3.28/dist/android/android_config.in	2017-06-13 11:15:15.323215161 +0200
+Only in db_patched/: cscope.in.out
+Only in db_patched/: cscope.out
+Only in db_patched/: cscope.po.out
+diff -ur db-5.3.28/dist/android/android_config.in db_patched/dist/android/android_config.in
+--- db-5.3.28/dist/android/android_config.in	2013-09-09 15:35:02.000000000 +0000
++++ db_patched/dist/android/android_config.in	2025-02-26 17:38:01.938986820 +0000
 @@ -123,6 +123,9 @@
  /* Define to 1 if allocated filesystem blocks are not zeroed. */
  /* #undef HAVE_FILESYSTEM_NOTZERO */
@@ -11,9 +14,9 @@ diff -up db-5.3.28/dist/android/android_config.in.pthreads db-5.3.28/dist/androi
  /* Define to 1 if you have the `fopen' function. */
  #define HAVE_FOPEN 1
  
-diff -up db-5.3.28/dist/config.hin.pthreads db-5.3.28/dist/config.hin
---- db-5.3.28/dist/config.hin.pthreads	2013-09-09 17:35:02.000000000 +0200
-+++ db-5.3.28/dist/config.hin	2017-06-13 11:15:15.000000000 +0200
+diff -ur db-5.3.28/dist/config.hin db_patched/dist/config.hin
+--- db-5.3.28/dist/config.hin	2013-09-09 15:35:02.000000000 +0000
++++ db_patched/dist/config.hin	2025-02-26 17:38:01.939986820 +0000
 @@ -92,6 +92,9 @@
  /* Define to 1 if you have the <dlfcn.h> header file. */
  #undef HAVE_DLFCN_H
@@ -56,10 +59,10 @@ diff -up db-5.3.28/dist/config.hin.pthreads db-5.3.28/dist/config.hin
  /* Number of bits in a file offset, on hosts where this is settable. */
  #undef _FILE_OFFSET_BITS
  
-diff -up db-5.3.28/dist/configure.ac.pthreads db-5.3.28/dist/configure.ac
---- db-5.3.28/dist/configure.ac.pthreads	2017-06-13 11:15:15.309215434 +0200
-+++ db-5.3.28/dist/configure.ac	2017-06-13 11:15:15.323215161 +0200
-@@ -698,7 +698,7 @@ AC_REPLACE_FUNCS(\
+diff -ur db-5.3.28/dist/configure.ac db_patched/dist/configure.ac
+--- db-5.3.28/dist/configure.ac	2013-09-09 15:35:02.000000000 +0000
++++ db_patched/dist/configure.ac	2025-02-26 17:38:01.939986820 +0000
+@@ -698,7 +698,7 @@
  # Check for system functions we optionally use.
  AC_CHECK_FUNCS(\
  	_fstati64 backtrace backtrace_symbols directio fchmod fclose\
@@ -68,7 +71,7 @@ diff -up db-5.3.28/dist/configure.ac.pthreads db-5.3.28/dist/configure.ac
  	getrusage getuid hstrerror mprotect pstat_getdynamic\
  	pthread_self pthread_yield random sched_yield select setgid setuid\
  	sigaction snprintf stat sysconf vsnprintf yield)
-@@ -1042,6 +1042,34 @@ if test "$db_cv_localization" = "yes"; t
+@@ -1042,6 +1042,34 @@
  [Define to 1 if you have localization function to support globalization.])
  fi
  
@@ -103,10 +106,10 @@ diff -up db-5.3.28/dist/configure.ac.pthreads db-5.3.28/dist/configure.ac
  # We need to add the additional object files into the Makefile with the correct
  # suffix.  We can't use $LTLIBOBJS itself, because that variable has $U encoded
  # in it for automake, and that's not what we want.  See SR #7227 for additional
-diff -up db-5.3.28/src/db/db_meta.c.pthreads db-5.3.28/src/db/db_meta.c
---- db-5.3.28/src/db/db_meta.c.pthreads	2013-09-09 17:35:07.000000000 +0200
-+++ db-5.3.28/src/db/db_meta.c	2017-06-13 11:15:15.323215161 +0200
-@@ -1330,8 +1330,9 @@ __db_haslock(env, locker, dbmfp, pgno, m
+diff -ur db-5.3.28/src/db/db_meta.c db_patched/src/db/db_meta.c
+--- db-5.3.28/src/db/db_meta.c	2013-09-09 15:35:07.000000000 +0000
++++ db_patched/src/db/db_meta.c	2025-02-26 17:38:01.939986820 +0000
+@@ -1330,8 +1330,9 @@
  }
  /*
   * __db_has_pagelock --
@@ -118,7 +121,7 @@ diff -up db-5.3.28/src/db/db_meta.c.pthreads db-5.3.28/src/db/db_meta.c
   *
   * PUBLIC: #ifdef DIAGNOSTIC
   * PUBLIC: int __db_has_pagelock __P((ENV *, DB_LOCKER *,
-@@ -1348,6 +1349,9 @@ __db_has_pagelock(env, locker, dbmfp, pa
+@@ -1348,6 +1349,9 @@
  {
  	int ret;
  
@@ -128,41 +131,10 @@ diff -up db-5.3.28/src/db/db_meta.c.pthreads db-5.3.28/src/db/db_meta.c
  	switch (pagep->type) {
  	case P_OVERFLOW:
  	case P_INVALID:
-diff -up db-5.3.28/src/dbinc_auto/int_def.in.pthreads db-5.3.28/src/dbinc_auto/int_def.in
---- db-5.3.28/src/dbinc_auto/int_def.in.pthreads	2017-06-13 11:15:15.317215278 +0200
-+++ db-5.3.28/src/dbinc_auto/int_def.in	2017-06-13 11:15:15.324215141 +0200
-@@ -1545,6 +1545,7 @@
- #if defined(HAVE_REPLICATION_THREADS)
- #define	__os_freeaddrinfo __os_freeaddrinfo@DB_VERSION_UNIQUE_NAME@
- #endif
-+#define	__os_pthreads_timestamp __os_pthreads_timestamp@DB_VERSION_UNIQUE_NAME@
- #define	__os_umalloc __os_umalloc@DB_VERSION_UNIQUE_NAME@
- #define	__os_urealloc __os_urealloc@DB_VERSION_UNIQUE_NAME@
- #define	__os_ufree __os_ufree@DB_VERSION_UNIQUE_NAME@
-diff -up db-5.3.28/src/dbinc_auto/os_ext.h.pthreads db-5.3.28/src/dbinc_auto/os_ext.h
---- db-5.3.28/src/dbinc_auto/os_ext.h.pthreads	2013-09-09 17:35:08.000000000 +0200
-+++ db-5.3.28/src/dbinc_auto/os_ext.h	2017-06-13 11:15:15.324215141 +0200
-@@ -14,6 +14,7 @@ int __os_getaddrinfo __P((ENV *, const c
- #if defined(HAVE_REPLICATION_THREADS)
- void __os_freeaddrinfo __P((ENV *, ADDRINFO *));
- #endif
-+time_t __os_pthreads_timestamp __P((ENV *));
- int __os_umalloc __P((ENV *, size_t, void *));
- int __os_urealloc __P((ENV *, size_t, void *));
- void __os_ufree __P((ENV *, void *));
-@@ -40,7 +41,7 @@ void __os_set_errno __P((int));
- char *__os_strerror __P((int, char *, size_t));
- int __os_posix_err __P((int));
- int __os_fileid __P((ENV *, const char *, int, u_int8_t *));
--int __os_fdlock __P((ENV *, DB_FH *, off_t, int, int));
-+int __os_fdlock __P((ENV *, DB_FH *, off_t, db_lockmode_t, int));
- int __os_fsync __P((ENV *, DB_FH *));
- int __os_getenv __P((ENV *, const char *, char **, size_t));
- int __os_openhandle __P((ENV *, const char *, int, int, DB_FH **));
-diff -up db-5.3.28/src/dbinc/region.h.pthreads db-5.3.28/src/dbinc/region.h
---- db-5.3.28/src/dbinc/region.h.pthreads	2013-09-09 17:35:08.000000000 +0200
-+++ db-5.3.28/src/dbinc/region.h	2017-06-13 11:15:15.324215141 +0200
-@@ -178,6 +178,16 @@ typedef struct __db_reg_env { /* SHARED
+diff -ur db-5.3.28/src/dbinc/region.h db_patched/src/dbinc/region.h
+--- db-5.3.28/src/dbinc/region.h	2013-09-09 15:35:08.000000000 +0000
++++ db_patched/src/dbinc/region.h	2025-02-26 17:38:01.940986820 +0000
+@@ -178,6 +178,16 @@
  	u_int32_t envid;		/* Unique environment ID. */
  
  	u_int32_t signature;		/* Structure signatures. */
@@ -179,10 +151,42 @@ diff -up db-5.3.28/src/dbinc/region.h.pthreads db-5.3.28/src/dbinc/region.h
  
  	time_t	  timestamp;		/* Creation time. */
  
-diff -up db-5.3.28/src/env/env_open.c.pthreads db-5.3.28/src/env/env_open.c
---- db-5.3.28/src/env/env_open.c.pthreads	2013-09-09 17:35:08.000000000 +0200
-+++ db-5.3.28/src/env/env_open.c	2017-06-13 11:15:15.324215141 +0200
-@@ -1031,11 +1031,11 @@ __env_attach_regions(dbenv, flags, orig_
+diff -ur db-5.3.28/src/dbinc_auto/int_def.in db_patched/src/dbinc_auto/int_def.in
+--- db-5.3.28/src/dbinc_auto/int_def.in	2013-09-09 15:35:08.000000000 +0000
++++ db_patched/src/dbinc_auto/int_def.in	2025-02-26 17:38:01.939986820 +0000
+@@ -1542,6 +1542,7 @@
+ #if defined(HAVE_REPLICATION_THREADS)
+ #define	__os_freeaddrinfo __os_freeaddrinfo@DB_VERSION_UNIQUE_NAME@
+ #endif
++#define	__os_pthreads_timestamp __os_pthreads_timestamp@DB_VERSION_UNIQUE_NAME@
+ #define	__os_umalloc __os_umalloc@DB_VERSION_UNIQUE_NAME@
+ #define	__os_urealloc __os_urealloc@DB_VERSION_UNIQUE_NAME@
+ #define	__os_ufree __os_ufree@DB_VERSION_UNIQUE_NAME@
+Only in db_patched/src/dbinc_auto: int_def.in.orig
+diff -ur db-5.3.28/src/dbinc_auto/os_ext.h db_patched/src/dbinc_auto/os_ext.h
+--- db-5.3.28/src/dbinc_auto/os_ext.h	2013-09-09 15:35:08.000000000 +0000
++++ db_patched/src/dbinc_auto/os_ext.h	2025-02-26 17:38:01.940986820 +0000
+@@ -14,6 +14,7 @@
+ #if defined(HAVE_REPLICATION_THREADS)
+ void __os_freeaddrinfo __P((ENV *, ADDRINFO *));
+ #endif
++time_t __os_pthreads_timestamp __P((ENV *));
+ int __os_umalloc __P((ENV *, size_t, void *));
+ int __os_urealloc __P((ENV *, size_t, void *));
+ void __os_ufree __P((ENV *, void *));
+@@ -40,7 +41,7 @@
+ char *__os_strerror __P((int, char *, size_t));
+ int __os_posix_err __P((int));
+ int __os_fileid __P((ENV *, const char *, int, u_int8_t *));
+-int __os_fdlock __P((ENV *, DB_FH *, off_t, int, int));
++int __os_fdlock __P((ENV *, DB_FH *, off_t, db_lockmode_t, int));
+ int __os_fsync __P((ENV *, DB_FH *));
+ int __os_getenv __P((ENV *, const char *, char **, size_t));
+ int __os_openhandle __P((ENV *, const char *, int, int, DB_FH **));
+diff -ur db-5.3.28/src/env/env_open.c db_patched/src/env/env_open.c
+--- db-5.3.28/src/env/env_open.c	2013-09-09 15:35:08.000000000 +0000
++++ db_patched/src/env/env_open.c	2025-02-26 17:38:01.940986820 +0000
+@@ -1031,11 +1031,11 @@
  		goto err;
  
  	/*
@@ -197,10 +201,10 @@ diff -up db-5.3.28/src/env/env_open.c.pthreads db-5.3.28/src/env/env_open.c
  	 */
  	if (FLD_ISSET(init_flags, DB_INITENV_CDB))
  		LF_SET(DB_INIT_CDB);
-diff -up db-5.3.28/src/env/env_region.c.pthreads db-5.3.28/src/env/env_region.c
---- db-5.3.28/src/env/env_region.c.pthreads	2013-09-09 17:35:08.000000000 +0200
-+++ db-5.3.28/src/env/env_region.c	2017-06-13 11:16:02.159299222 +0200
-@@ -18,13 +18,49 @@ static int  __env_des_get __P((ENV *, RE
+diff -ur db-5.3.28/src/env/env_region.c db_patched/src/env/env_region.c
+--- db-5.3.28/src/env/env_region.c	2013-09-09 15:35:08.000000000 +0000
++++ db_patched/src/env/env_region.c	2025-02-26 17:38:01.940986820 +0000
+@@ -18,13 +18,49 @@
  static int  __env_faultmem __P((ENV *, void *, size_t, int));
  static int  __env_sys_attach __P((ENV *, REGINFO *, REGION *));
  static int  __env_sys_detach __P((ENV *, REGINFO *, int));
@@ -250,7 +254,7 @@ diff -up db-5.3.28/src/env/env_region.c.pthreads db-5.3.28/src/env/env_region.c
   * PUBLIC: int __env_attach __P((ENV *, u_int32_t *, int, int));
   */
  int
-@@ -122,7 +158,11 @@ loop:	renv = NULL;
+@@ -122,7 +158,11 @@
  	if ((ret = __os_open(
  	    env, infop->name, 0, DB_OSO_REGION, 0, &env->lockfhp)) != 0)
  		goto err;
@@ -263,7 +267,7 @@ diff -up db-5.3.28/src/env/env_region.c.pthreads db-5.3.28/src/env/env_region.c
  	/*
  	 * !!!
  	 * The region may be in system memory not backed by the filesystem
-@@ -218,11 +258,10 @@ loop:	renv = NULL;
+@@ -218,11 +258,10 @@
  		segid = ref.segid;
  	}
  
@@ -278,7 +282,7 @@ diff -up db-5.3.28/src/env/env_region.c.pthreads db-5.3.28/src/env/env_region.c
  	 */
  	(void)__os_closehandle(env, env->lockfhp);
  	 env->lockfhp = NULL;
-@@ -233,6 +272,8 @@ loop:	renv = NULL;
+@@ -233,6 +272,8 @@
  	tregion.size = (roff_t)size;
  	tregion.max = (roff_t)max;
  	tregion.segid = segid;
@@ -287,7 +291,7 @@ diff -up db-5.3.28/src/env/env_region.c.pthreads db-5.3.28/src/env/env_region.c
  	if ((ret = __env_sys_attach(env, infop, &tregion)) != 0)
  		goto err;
  
-@@ -245,21 +286,48 @@ user_map_functions:
+@@ -245,21 +286,48 @@
  	infop->primary = infop->addr;
  	infop->head = (u_int8_t *)infop->addr + sizeof(REGENV);
  	renv = infop->primary;
@@ -344,7 +348,7 @@ diff -up db-5.3.28/src/env/env_region.c.pthreads db-5.3.28/src/env/env_region.c
  		goto err;
  	}
  	if (renv->signature != signature) {
-@@ -289,6 +357,18 @@ user_map_functions:
+@@ -289,6 +357,18 @@
  	}
  	if (renv->magic != DB_REGION_MAGIC)
  		goto retry;
@@ -363,7 +367,7 @@ diff -up db-5.3.28/src/env/env_region.c.pthreads db-5.3.28/src/env/env_region.c
  
  	/*
  	 * Get a reference to the underlying REGION information for this
-@@ -346,6 +426,12 @@ user_map_functions:
+@@ -346,6 +426,12 @@
  	return (0);
  
  creation:
@@ -376,7 +380,7 @@ diff -up db-5.3.28/src/env/env_region.c.pthreads db-5.3.28/src/env/env_region.c
  	/* Create the environment region. */
  	F_SET(infop, REGION_CREATE);
  
-@@ -437,7 +523,14 @@ creation:
+@@ -437,7 +523,14 @@
  	renv->minver = (u_int32_t)minver;
  	renv->patchver = (u_int32_t)patchver;
  	renv->signature = signature;
@@ -392,7 +396,7 @@ diff -up db-5.3.28/src/env/env_region.c.pthreads db-5.3.28/src/env/env_region.c
  	(void)time(&renv->timestamp);
  	__os_unique_id(env, &renv->envid);
  
-@@ -513,16 +606,24 @@ find_err:	__db_errx(env, DB_STR_A("1544"
+@@ -513,16 +606,24 @@
  		}
  	}
  
@@ -424,7 +428,7 @@ diff -up db-5.3.28/src/env/env_region.c.pthreads db-5.3.28/src/env/env_region.c
  #endif
  
  	/* Everything looks good, we're done. */
-@@ -562,9 +663,9 @@ retry:	/* Close any open file handle. */
+@@ -562,9 +663,9 @@
  	/* If we had a temporary error, wait awhile and try again. */
  	if (ret == 0) {
  		if (!retry_ok || ++retry_cnt > 3) {
@@ -435,7 +439,7 @@ diff -up db-5.3.28/src/env/env_region.c.pthreads db-5.3.28/src/env/env_region.c
  		} else {
  			__os_yield(env, retry_cnt * 3, 0);
  			goto loop;
-@@ -575,6 +676,59 @@ retry:	/* Close any open file handle. */
+@@ -575,6 +676,59 @@
  }
  
  /*
@@ -495,9 +499,9 @@ diff -up db-5.3.28/src/env/env_region.c.pthreads db-5.3.28/src/env/env_region.c
   * __env_turn_on --
   *	Turn on the created environment.
   *
-diff -up db-5.3.28/src/env/env_register.c.pthreads db-5.3.28/src/env/env_register.c
---- db-5.3.28/src/env/env_register.c.pthreads	2013-09-09 17:35:08.000000000 +0200
-+++ db-5.3.28/src/env/env_register.c	2017-06-13 11:15:15.325215121 +0200
+diff -ur db-5.3.28/src/env/env_register.c db_patched/src/env/env_register.c
+--- db-5.3.28/src/env/env_register.c	2013-09-09 15:35:08.000000000 +0000
++++ db_patched/src/env/env_register.c	2025-02-26 17:38:01.940986820 +0000
 @@ -19,9 +19,9 @@
  #define	PID_LEN		(25)				/* PID entry length */
  
@@ -510,10 +514,10 @@ diff -up db-5.3.28/src/env/env_register.c.pthreads db-5.3.28/src/env/env_registe
  #define	REGISTRY_EXCL_LOCK(env, nowait)					\
  	REGISTRY_LOCK(env, 1, nowait)
  #define	REGISTRY_EXCL_UNLOCK(env)					\
-diff -up db-5.3.28/src/env/env_stat.c.pthreads db-5.3.28/src/env/env_stat.c
---- db-5.3.28/src/env/env_stat.c.pthreads	2013-09-09 17:35:08.000000000 +0200
-+++ db-5.3.28/src/env/env_stat.c	2017-06-13 11:15:15.325215121 +0200
-@@ -177,6 +177,10 @@ __env_print_stats(env, flags)
+diff -ur db-5.3.28/src/env/env_stat.c db_patched/src/env/env_stat.c
+--- db-5.3.28/src/env/env_stat.c	2013-09-09 15:35:08.000000000 +0000
++++ db_patched/src/env/env_stat.c	2025-02-26 17:38:01.940986820 +0000
+@@ -177,6 +177,10 @@
  	STAT_LONG("Txn version", DB_TXNVERSION);
  	__db_msg(env,
  	    "%.24s\tCreation time", __os_ctime(&renv->timestamp, time_buf));
@@ -524,9 +528,9 @@ diff -up db-5.3.28/src/env/env_stat.c.pthreads db-5.3.28/src/env/env_stat.c
  	STAT_HEX("Environment ID", renv->envid);
  	__mutex_print_debug_single(env,
  	    "Primary region allocation and reference count mutex",
-diff -up db-5.3.28/src/os/os_addrinfo.c.pthreads db-5.3.28/src/os/os_addrinfo.c
---- db-5.3.28/src/os/os_addrinfo.c.pthreads	2013-09-09 17:35:09.000000000 +0200
-+++ db-5.3.28/src/os/os_addrinfo.c	2017-06-13 11:15:15.325215121 +0200
+diff -ur db-5.3.28/src/os/os_addrinfo.c db_patched/src/os/os_addrinfo.c
+--- db-5.3.28/src/os/os_addrinfo.c	2013-09-09 15:35:09.000000000 +0000
++++ db_patched/src/os/os_addrinfo.c	2025-02-26 17:43:43.494986820 +0000
 @@ -10,6 +10,10 @@
  
  #include "db_int.h"
@@ -538,7 +542,7 @@ diff -up db-5.3.28/src/os/os_addrinfo.c.pthreads db-5.3.28/src/os/os_addrinfo.c
  /*
   * __os_getaddrinfo and __os_freeaddrinfo wrap the getaddrinfo and freeaddrinfo
   * calls, as well as the associated platform dependent error handling, mapping
-@@ -177,3 +181,48 @@ __os_freeaddrinfo(env, ai)
+@@ -177,3 +181,53 @@
  	}
  #endif
  }
@@ -578,18 +582,23 @@ diff -up db-5.3.28/src/os/os_addrinfo.c.pthreads db-5.3.28/src/os/os_addrinfo.c
 +__os_pthreads_timestamp(env)
 +	ENV *env;
 +{
-+	time_t	timestamp;
++	time_t	timestamp = 0;
++	const char *libc_path;
++        struct stat64 stbuf;
 +
-+	timestamp = 0;
-+	dl_iterate_phdr(callback_find_pthreads, &timestamp);
++	libc_path = (sizeof(void *) == 8 ? "/usr/lib64/libc.so.6" :
++                    "/usr/libc.so.6");
 +
-+	COMPQUIET(env, 0);
++	if (stat64(libc_path, &stbuf) == 0)
++        	timestamp = stbuf.st_mtime;
++
 +	return (timestamp);
++
 +}
 +#endif
-diff -up db-5.3.28/src/os/os_flock.c.pthreads db-5.3.28/src/os/os_flock.c
---- db-5.3.28/src/os/os_flock.c.pthreads	2013-09-09 17:35:09.000000000 +0200
-+++ db-5.3.28/src/os/os_flock.c	2017-06-13 11:15:15.325215121 +0200
+diff -ur db-5.3.28/src/os/os_flock.c db_patched/src/os/os_flock.c
+--- db-5.3.28/src/os/os_flock.c	2013-09-09 15:35:09.000000000 +0000
++++ db_patched/src/os/os_flock.c	2025-02-26 17:38:01.941986820 +0000
 @@ -10,41 +10,98 @@
  
  #include "db_int.h"
@@ -705,7 +714,7 @@ diff -up db-5.3.28/src/os/os_flock.c.pthreads db-5.3.28/src/os/os_flock.c
  
  	if (ret == 0)
  		return (0);
-@@ -53,12 +110,29 @@ __os_fdlock(env, fhp, offset, acquire, n
+@@ -53,12 +110,29 @@
  		__db_syserr(env, ret, DB_STR("0139", "fcntl"));
  	return (t_ret);
  #else
@@ -737,10 +746,10 @@ diff -up db-5.3.28/src/os/os_flock.c.pthreads db-5.3.28/src/os/os_flock.c
 -#endif
  }
 +#endif
-diff -up db-5.3.28/src/os/os_map.c.pthreads db-5.3.28/src/os/os_map.c
---- db-5.3.28/src/os/os_map.c.pthreads	2013-09-09 17:35:09.000000000 +0200
-+++ db-5.3.28/src/os/os_map.c	2017-06-13 11:15:15.325215121 +0200
-@@ -32,7 +32,7 @@ static int __no_system_mem __P((ENV *));
+diff -ur db-5.3.28/src/os/os_map.c db_patched/src/os/os_map.c
+--- db-5.3.28/src/os/os_map.c	2013-09-09 15:35:09.000000000 +0000
++++ db_patched/src/os/os_map.c	2025-02-26 17:38:01.941986820 +0000
+@@ -32,7 +32,7 @@
  
  /*
   * __os_attach --
@@ -749,7 +758,7 @@ diff -up db-5.3.28/src/os/os_map.c.pthreads db-5.3.28/src/os/os_map.c
   *
   * PUBLIC: int __os_attach __P((ENV *, REGINFO *, REGION *));
   */
-@@ -50,6 +50,7 @@ __os_attach(env, infop, rp)
+@@ -50,6 +50,7 @@
  	 * so there must be a valid handle.
  	 */
  	DB_ASSERT(env, env != NULL && env->dbenv != NULL);

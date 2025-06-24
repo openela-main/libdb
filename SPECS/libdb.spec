@@ -6,7 +6,7 @@
 Summary: The Berkeley DB database library for C
 Name: libdb
 Version: 5.3.28
-Release: 55%{?dist}
+Release: 57%{?dist}
 Source0: http://download.oracle.com/berkeley-db/db-%{version}.tar.gz
 Source1: http://download.oracle.com/berkeley-db/db.1.85.tar.gz
 # For mt19937db.c
@@ -290,6 +290,10 @@ echo "source ../../test/tcl/test.tcl; r env; r mut; r memp" | tclsh
 popd
 
 pushd db_converter-%{__converter_version}
+
+# Remove CFLAGS definition hardcoded in Makefile by upstream
+sed -i '1d' Makefile
+
 %make_build
 popd
 
@@ -408,6 +412,13 @@ install -m 0755 db_converter-%{__converter_version}/db_converter %{buildroot}/%{
 %{_includedir}/%{name}/dbsql.h
 
 %changelog
+* Wed Mar 12 2025 Filip Januš <fjanus@redhat.com> - 5.3.28-57
+- Adress rpminspect issue - missing debuginfo for
+  db_converter
+
+* Wed Feb 26 2025 Filip Januš <fjanus@redhat.com> - 5.3.28-56
+- Use a fixed path, /usr/lib64/libc.so.6 for 64-bit targets
+
 * Mon Sep 16 2024 Filip Januš <fjanus@redhat.com> - 5.3.28-55
 - Rebase db_converter tool to the latest version
 
